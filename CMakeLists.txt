@@ -2,6 +2,10 @@ cmake_minimum_required(VERSION 3.6)
 
 project(lccv)
 
+if(NOT PROJECT_DEPS_DIR)
+  set(PROJECT_DEPS_DIR /home/pi/work/odec/project_deps/install)
+endif()
+
 if (NOT EXISTS ${CMAKE_BINARY_DIR}/CMakeCache.txt)
     if (NOT CMAKE_BUILD_TYPE)
         set(CMAKE_BUILD_TYPE "Release" CACHE STRING "" FORCE)
@@ -44,7 +48,9 @@ set(CPACK_SOURCE_IGNORE_FILES "/\.git*;/build;")
 include(CPack)
 
 find_package(PkgConfig REQUIRED)
-find_package(OpenCV REQUIRED)
+find_package(OpenCV REQUIRED PATHS ${PROJECT_DEPS_DIR}/lib/cmake)
+
+message("OpenCV version : ${OpenCV_VERSION}")
 
 pkg_check_modules(LIBCAMERA REQUIRED libcamera)
 message(STATUS "libcamera library found:")
@@ -64,6 +70,7 @@ set(HEADERS
     include/libcamera_app.hpp
     include/libcamera_app_options.hpp
 )
+include_directories(include)
 
 add_library(liblccv ${SOURCES} ${HEADERS})
 target_include_directories(liblccv
@@ -75,6 +82,8 @@ target_include_directories(liblccv
 
 set_target_properties(liblccv PROPERTIES PREFIX "" IMPORT_PREFIX "")
 target_link_libraries(liblccv pthread ${LIBCAMERA_LINK_LIBRARIES} ${OpenCV_LIBS})
+
+add_subdirectory(example)
 
 install(TARGETS liblccv 
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR} 
